@@ -35,7 +35,7 @@ def SETUP():
     START_button.place(x=w//2, y=100, anchor="n")
 
 def StartGame():
-    global root, amount, w, h, TURN_Button, matches, gap, box_width
+    global root, amount, w, h, TURN_Button, matches, gap, box_width, moves_left, first_time
 
     #error handling for non-int inputs and resetting the setup if so
     try:
@@ -55,6 +55,8 @@ def StartGame():
     w = amount * box_width + (amount * gap * 2)
     h = 200
     matches = amount * [1, ]
+    moves_left = 3
+    first_time = True
 
     #change window properties
     root.title("NIM")
@@ -73,6 +75,7 @@ def StartGame():
     
     #set initial turn
     SwitchTurns()
+    first_time = False
 
     #make an end turn button so the player can end their turn even before using all their moves
     TURN_Button = tk.Button(c, text="END TURN", width=20, bg = "#7e5c8d", fg="white", font=("Arial", 10, "bold"), command=lambda: SwitchTurns())
@@ -120,15 +123,24 @@ def on_match_click(event):
 #define function for switching turns
 def SwitchTurns():
     global current_player, moves_left
-    c.delete("turn")
 
-    moves_left = 3
-    current_player += 1
+    if moves_left < 3: #prevents the player from switching turns without making a move
+        c.delete("turn")
 
-    if current_player > players[len(players)-1]:
-        current_player = players[0]
+        moves_left = 3
+        current_player += 1
 
-    c.create_text(w//2, 20, text = f"It's Player {current_player}'s turn!", fill="black", font="Arial 10 bold", anchor="center", tag="turn")
+        if current_player > players[len(players)-1]:
+            current_player = players[0]
+
+        c.create_text(w//2, 20, text = f"It's Player {current_player}'s turn!", fill="black", font="Arial 10 bold", anchor="center", tag="turn")
+
+    elif first_time: #prevents the warning from showing on start
+        c.create_text(w//2, 20, text = f"It's Player {current_player}'s turn!", fill="black", font="Arial 10 bold", anchor="center", tag="turn")
+        
+    else:
+        c.create_text(w//2, h-65, text = "you need to make a move first!", fill="red", font = "Arial 10", anchor="center", tag="move_warning")
+        c.after(1000, lambda: c.delete("move_warning"))
 
 def on_close(): #prevents errors on closing the window
     root.destroy()
